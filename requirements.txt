@@ -1,0 +1,11 @@
+django>=5.0,<6.0
+djangorestframework>=3.15.0
+drf-yasg>=1.21.7
+psycopg2-binary>=2.9.9
+requests>=2.32.3
+
+# AI / Speech tools
+openai>=1.30.0
+google-cloud-speech>=2.25.0
+google-cloud-texttospeech>=2.15.0
+gTTS>=2.5.1
