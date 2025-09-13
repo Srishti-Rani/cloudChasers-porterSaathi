@@ -3,9 +3,8 @@ from django.views.decorators.csrf import csrf_exempt
 from elevenlabs import ElevenLabs
 import os
 from dotenv import load_dotenv
-from io import BytesIO
-from .utils.ai_service import generate_sql , generate_response
 from django.views.decorators.csrf import csrf_exempt
+from .utils.ai_service import generate_sql , generate_response
 from django.db import connection
 
 import json
@@ -45,8 +44,9 @@ def text_to_speech(request):
     try:
         # Example using ElevenLabs SDK generator (adapt names to your SDK)
         # Some SDKs return bytes directly or a generator — adjust accordingly.
+        text_response = ask_dynamic(driver_id=1, question=text)
         audio_gen = elevenlabs.text_to_speech.convert(
-            text=text,
+            text=text_response,
             voice_id="JBFqnCBsd6RMkjVDRZzb",
             model_id="eleven_multilingual_v2",
             output_format="mp3_44100_128"
@@ -60,33 +60,25 @@ def text_to_speech(request):
 
         response = HttpResponse(audio_bytes, content_type="audio/mpeg")
         response["Content-Disposition"] = 'attachment; filename="tts.mp3"'
+        response["text_response"] = text_response
         return response
     except Exception as e:
         # log the error in server logs
         return JsonResponse({"error": "TTS generation failed", "detail": str(e)}, status=500)
-
-@csrf_exempt
-def ask_dynamic(request):
-    if request.method != "POST":
-        return JsonResponse({"error": "POST only"}, status=405)
     
-    try:
-        data = json.loads(request.body)
-    except json.JSONDecodeError:
-        return JsonResponse({"error": "Invalid JSON"}, status=400)
 
-    driver_id = data.get("driver_id")
-    question = data.get("question")
-    
+def ask_dynamic(driver_id: int, question: str) -> str:
+    """
+    Generate and execute a dynamic SQL query based on a question
+    and return the response as plain text.
+    """
 
     if not driver_id or not question:
-        return JsonResponse({"error": "Missing driver_id or question"}, status=400)
+        return "Error: Missing driver_id or question."
 
     try:
         # 1️⃣ Generate dynamic SQL via GPT
-       
         sql_query = generate_sql(question, driver_id)
-       
 
         # 2️⃣ Execute SQL safely with Django’s DB connection
         with connection.cursor() as cursor:
@@ -102,8 +94,7 @@ def ask_dynamic(request):
         else:
             response_text = generate_response(question, "No data found.")
 
-        return JsonResponse({ "response": response_text})
-    
-    except Exception as e:
-        return JsonResponse({"error": str(e)}, status=500)
+        return response_text
 
+    except Exception as e:
+        return f"Error: {str(e)}"
