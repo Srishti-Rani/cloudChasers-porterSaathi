@@ -1,0 +1,34 @@
+{
+  "How do I create a Porter account?": "Go to the Porter website or download the Porter app, then click on 'Sign Up'. Enter your mobile number, email ID, and set a password. You may also be asked to verify your phone number with an OTP.",
+  
+  "Do I need an email address to create a Porter account?": "An email address is recommended but not always mandatory. You can usually create an account using just your mobile number.",
+  
+  "Can I sign up for Porter using my Google or Facebook account?": "Yes, Porter allows social logins. You can sign up quickly using Google or Facebook credentials.",
+  
+  "What information is required to create a Porter account?": "You will need your mobile number, full name, and optionally an email address. You must also set a password during signup.",
+  
+  "Is account creation on Porter free?": "Yes, creating a Porter account is completely free.",
+  
+  "Do I need to provide ID proof while creating an account?": "For basic usage, ID proof is not required. However, for business accounts or high-value bookings, Porter may request verification documents.",
+  
+  "How long does it take to create an account on Porter?": "Account creation usually takes less than 2 minutes, including OTP verification.",
+  
+  "Can I have multiple Porter accounts with the same phone number?": "No, each mobile number can only be linked to one Porter account.",
+  
+  "Can I update my details after creating an account?": "Yes, you can update your profile details such as name, email, and password from the 'My Profile' section in the app or website.",
+  
+  "I did not receive the OTP during signup. What should I do?": "Ensure you entered the correct phone number, check your network connectivity, and try resending the OTP. If the problem persists, contact Porter support.",
+  
+  "Can I delete my Porter account after creating it?": "Yes, you can request account deletion by contacting Porter customer support. Once deleted, your account cannot be restored.",
+  
+  "accident": [
+    "Okay, I understand.  Take a deep breath.  Let's get you some help.  To best assist you, I need some information. Please answer as calmly and clearly as you can.",
+      "Move to a safe location if possible. Turn on hazard lights.",
+      "Check yourself and passengers for injuries. Do not move seriously injured people unless necessary.",
+      "Call local emergency services (e.g., 112) and provide details: accident type, location, number of injured, vehicle type.",
+      "Stay calm and clearly communicate with responders. Answer their questions.",
+      "If safe, take photos of vehicles, damages, and surroundings. Exchange contact and insurance info with others involved.",
+      "Administer basic first aid if trained. Apply pressure to severe bleeding. Do not move broken limbs.",
+      "Follow instructions from emergency responders until help arrives."
+  ]
+}
