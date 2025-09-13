@@ -4,7 +4,7 @@ from elevenlabs import ElevenLabs
 import os
 from dotenv import load_dotenv
 from io import BytesIO
-from .utils.ai_service import generate_sql
+from .utils.ai_service import generate_sql , generate_response
 from django.views.decorators.csrf import csrf_exempt
 from django.db import connection
 
@@ -77,13 +77,16 @@ def ask_dynamic(request):
 
     driver_id = data.get("driver_id")
     question = data.get("question")
+    
 
     if not driver_id or not question:
         return JsonResponse({"error": "Missing driver_id or question"}, status=400)
 
     try:
         # 1️⃣ Generate dynamic SQL via GPT
+       
         sql_query = generate_sql(question, driver_id)
+       
 
         # 2️⃣ Execute SQL safely with Django’s DB connection
         with connection.cursor() as cursor:
@@ -95,11 +98,11 @@ def ask_dynamic(request):
 
         # 3️⃣ Convert result to natural response
         if result:
-            response_text = f"Result: {result}"
+            response_text = generate_response(question, result)
         else:
-            response_text = "Koi data nahi mila."
+            response_text = generate_response(question, "No data found.")
 
-        return JsonResponse({"query": sql_query, "response": response_text, "data": result})
+        return JsonResponse({ "response": response_text})
     
     except Exception as e:
         return JsonResponse({"error": str(e)}, status=500)
