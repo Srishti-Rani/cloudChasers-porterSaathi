@@ -1,10 +1,10 @@
-# saathi_api/views.py
 from django.http import JsonResponse, FileResponse, HttpResponse
 from django.views.decorators.csrf import csrf_exempt
 from elevenlabs import ElevenLabs
 import os
 from dotenv import load_dotenv
 from io import BytesIO
+import json
 
 load_dotenv()
 elevenlabs = ElevenLabs(api_key=os.getenv("ELEVENLABS_API_KEY"))
@@ -15,29 +15,49 @@ def home(request):
 
 @csrf_exempt
 def text_to_speech(request):
-    if request.method == "POST":
-        text = request.POST.get("text")
-        if not text:
-            return JsonResponse({"error": "Please provide text to convert"}, status=400)
+    # Accept POST and OPTIONS (if you manually handle preflight)
+    if request.method == "OPTIONS":
+        return HttpResponse(status=200)  # CORS library usually handles this
 
+    if request.method != "POST":
+        return JsonResponse({"error": "Only POST allowed"}, status=405)
+
+    # Support JSON body or form-data
+    text = None
+    content_type = request.META.get("CONTENT_TYPE", "")
+
+    if "application/json" in content_type:
         try:
-            # Generate TTS audio
-            audio_gen = elevenlabs.text_to_speech.convert(
-                text=text,
-                voice_id="JBFqnCBsd6RMkjVDRZzb",  # choose your voice
-                model_id="eleven_multilingual_v2",
-                output_format="mp3_44100_128"
-            )
+            payload = json.loads(request.body.decode("utf-8") or "{}")
+            text = payload.get("text")
+        except json.JSONDecodeError:
+            return JsonResponse({"error": "Invalid JSON"}, status=400)
+    else:
+        text = request.POST.get("text")
 
-            # Convert generator to bytes
+    if not text:
+        return JsonResponse({"error": "Please provide text to convert"}, status=400)
+
+    try:
+        # Example using ElevenLabs SDK generator (adapt names to your SDK)
+        # Some SDKs return bytes directly or a generator — adjust accordingly.
+        audio_gen = elevenlabs.text_to_speech.convert(
+            text=text,
+            voice_id="JBFqnCBsd6RMkjVDRZzb",
+            model_id="eleven_multilingual_v2",
+            output_format="mp3_44100_128"
+        )
+
+        # If audio_gen is a generator yielding bytes:
+        if hasattr(audio_gen, "_iter_") and not isinstance(audio_gen, (bytes, bytearray)):
             audio_bytes = b"".join(audio_gen)
+        else:
+            audio_bytes = audio_gen  # already bytes
 
-            # Send as audio file
-            return FileResponse(BytesIO(audio_bytes), content_type="audio/mpeg", filename="output.mp3")
+        response = HttpResponse(audio_bytes, content_type="audio/mpeg")
+        response["Content-Disposition"] = 'attachment; filename="tts.mp3"'
+        return response
 
-        except Exception as e:
-            return JsonResponse({"error": str(e)}, status=500)
-
-    return JsonResponse({"error": "POST method required"}, status=405)
-
-
+    except Exception as e:
+        # log the error in server logs
+        return JsonResponse({"error": "TTS generation failed", "detail": str(e)}, status=500)
