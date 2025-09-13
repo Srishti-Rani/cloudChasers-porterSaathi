@@ -2,16 +2,18 @@ import React, { useState, useEffect } from "react";
 
 export default function App() {
   const [messages, setMessages] = useState([
-    { type: "ai", text: "Namaste! Main aapka Saathi hoon. 🚕 Bolke shuru karein." },
+    { type: "ai", text: "Namaste! Main aapka Saathi voice assistant hoon. 🚕" },
   ]);
   const [listening, setListening] = useState(false);
+  const [language, setLanguage] = useState(localStorage.getItem("saathiLang") || "");
+  const [showLangPicker, setShowLangPicker] = useState(!language);
 
   let recognition;
   if ("webkitSpeechRecognition" in window) {
     recognition = new window.webkitSpeechRecognition();
-    recognition.lang = "hi-IN"; // Hindi
     recognition.continuous = false;
     recognition.interimResults = false;
+    if (language) recognition.lang = language;
   }
 
   // Start listening
@@ -40,16 +42,27 @@ export default function App() {
       speak(responseText);
     };
 
-    recognition.onend = () => {
-      setListening(false);
-    };
+    recognition.onend = () => setListening(false);
   }
 
   // Text-to-Speech
   const speak = (text) => {
     const utterance = new SpeechSynthesisUtterance(text);
-    utterance.lang = "hi-IN"; // Hindi voice
+    utterance.lang = language || "hi-IN"; // Use selected language
     window.speechSynthesis.speak(utterance);
+  };
+
+  // Handle language selection
+  const selectLanguage = (lang) => {
+    setLanguage(lang);
+    localStorage.setItem("saathiLang", lang);
+    setShowLangPicker(false);
+    setMessages((prev) => [
+      ...prev,
+      { type: "ai", text: "Language set. Ab aap bol sakte hain." },
+    ]);
+    speak("Language set. Ab aap bol sakte hain.");
+    if (recognition) recognition.lang = lang;
   };
 
   return (
@@ -75,17 +88,46 @@ export default function App() {
         ))}
       </div>
 
+      {/* Language Picker */}
+      {showLangPicker && (
+        <div className="p-4 flex flex-col gap-2 items-center">
+          <p className="font-bold">Select your language / Apni bhasha chunein:</p>
+          <div className="flex gap-2">
+            <button
+              className="bg-green-600 text-white px-4 py-2 rounded"
+              onClick={() => selectLanguage("hi-IN")}
+            >
+              Hindi
+            </button>
+            <button
+              className="bg-blue-600 text-white px-4 py-2 rounded"
+              onClick={() => selectLanguage("en-US")}
+            >
+              English
+            </button>
+            <button
+              className="bg-purple-600 text-white px-4 py-2 rounded"
+              onClick={() => selectLanguage("bn-IN")}
+            >
+              Bengali
+            </button>
+          </div>
+        </div>
+      )}
+
       {/* Voice Button */}
-      <div className="p-4 flex justify-center">
-        <button
-          className={`px-6 py-3 rounded-full text-white font-bold ${
-            listening ? "bg-red-600" : "bg-green-600"
-          }`}
-          onClick={listening ? stopListening : startListening}
-        >
-          {listening ? "Listening..." : "Tap to Speak"}
-        </button>
-      </div>
+      {!showLangPicker && (
+        <div className="p-4 flex justify-center">
+          <button
+            className={`px-6 py-3 rounded-full text-white font-bold ${
+              listening ? "bg-red-600" : "bg-green-600"
+            }`}
+            onClick={listening ? stopListening : startListening}
+          >
+            {listening ? "Listening..." : "Tap to Speak"}
+          </button>
+        </div>
+      )}
     </div>
   );
 }
